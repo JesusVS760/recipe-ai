@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"  
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String?
+  dietaryPrefs    String[]
+  allergies       String[]
+  nutritionGoals  Json?
+  recipes         Recipe[]
+  mealPlans       MealPlan[]
+  shoppingLists   ShoppingList[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Recipe {
+  id              String          @id @default(cuid())
+  title           String
+  description     String?
+  ingredients     Json            // Array of ingredients with quantities
+  instructions    String[]
+  prepTime        Int
+  cookTime        Int
+  servings        Int
+  difficulty      String
+  cuisine         String?
+  dietaryTags     String[]
+  nutrition       Json?
+  imageUrl        String?
+  isAiGenerated   Boolean         @default(false)
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  mealPlanItems   MealPlanItem[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model MealPlan {
+  id          String          @id @default(cuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  items       MealPlanItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model MealPlanItem {
+  id          String      @id @default(cuid())
+  mealPlanId  String
+  mealPlan    MealPlan    @relation(fields: [mealPlanId], references: [id])
+  recipeId    String
+  recipe      Recipe      @relation(fields: [recipeId], references: [id])
+  mealType    String      // breakfast, lunch, dinner, snack
+  scheduledFor DateTime
+  servings    Int         @default(1)
+  createdAt   DateTime    @default(now())
+}
+
+model ShoppingList {
+  id          String              @id @default(cuid())
+  name        String
+  userId      String
+  user        User                @relation(fields: [userId], references: [id])
+  items       ShoppingListItem[]
+  isCompleted Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model ShoppingListItem {
+  id              String          @id @default(cuid())
+  shoppingListId  String
+  shoppingList    ShoppingList    @relation(fields: [shoppingListId], references: [id])
+  ingredient      String
+  quantity        String
+  unit            String
+  category        String?
+  isPurchased     Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+}
