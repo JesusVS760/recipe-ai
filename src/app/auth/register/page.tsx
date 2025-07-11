@@ -1,53 +1,55 @@
-"use client";
-
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
 
-const loginSchema = z.object({
-  email: z.email("Please enter a valid email"),
+const signUpSchema = z.object({
+  firstname: z.string().min(2).max(12),
+  lastname: z.string().min(2).max(12),
+  email: z.email(),
   password: z.string().min(8),
 });
 
-type LoginFromData = z.infer<typeof loginSchema>;
+type SignUpFromData = z.infer<typeof signUpSchema>;
 
-export default function LoginPage() {
+export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { isValid, errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(signUpSchema),
     mode: "onChange",
   });
 
-  async function onSubmit(inputData: LoginFromData) {
+  async function onSubmit(data: SignUpFromData) {
     setIsLoading(true);
-
-    const formData = new FormData();
-    formData.append("email", inputData.email);
-    formData.append("passwrod", inputData.password);
+    setError(null);
+    const formdata = new FormData();
+    formdata.append("firstname", data.firstname);
+    formdata.append("email", data.email);
+    formdata.append("lastname", data.lastname);
+    formdata.append("password", data.password);
 
     try {
-      //     const result = signIn(formData);
-      //   if (result?.error) {
-      //     setError(result.error);
-      //   }
-      //   return;
     } catch {
       setError("Unexpected error has occurred");
     } finally {
-      setIsLoading(false);
+      setIsLoading(true);
     }
   }
 
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-4">
             <div>
