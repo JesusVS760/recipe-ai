@@ -12,6 +12,7 @@ model User {
   email           String          @unique
   firstName       String?
   lastName        String?
+  hashedPassword  String
   dietaryPrefs    String[]
   allergies       String[]
   nutritionGoals  Json?
