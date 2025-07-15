@@ -18,8 +18,18 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Navigation() {
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const found = sessionStorage.getItem("firstName");
+      setName(found ?? "User");
+    } catch {}
+  }, []);
+
   return (
     <div className="flex items-center justify-between px-4 py-6">
       <div>
@@ -60,7 +70,7 @@ export default function Navigation() {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger className="font-bold text-sm text-gray-600 cursor-pointer">
-            Name
+            {name}
           </DropdownMenuTrigger>
           <DropdownMenuContent className="transition-all duration-300">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>

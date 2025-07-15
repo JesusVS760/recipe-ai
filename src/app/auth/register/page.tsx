@@ -2,7 +2,6 @@
 
 import { signUp } from "@/lib/auth-actions.";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -46,6 +45,7 @@ export default function SignUp() {
       }
       if (result?.success) {
         console.log("reached; result: ", result);
+        sessionStorage.setItem("firstName", result.firstName as string);
         window.location.href = "/dashboard";
       }
     } catch {

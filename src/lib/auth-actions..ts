@@ -37,7 +37,7 @@ export async function signUp(formData: FormData) {
     });
 
     await createSession(user.id);
-    return { success: true };
+    return { success: true, firstName: user.firstName };
   } catch (error) {
     return { error: "Failed to create account. Please try again!" };
   }
