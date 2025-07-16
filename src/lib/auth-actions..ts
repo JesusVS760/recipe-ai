@@ -42,3 +42,34 @@ export async function signUp(formData: FormData) {
     return { error: "Failed to create account. Please try again!" };
   }
 }
+
+export async function signIn(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    return { error: "Missing required fields." };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return { error: "Invalid credentials ❌!" };
+    }
+
+    const isVerified = await verifyPassword(password, user.hashedPassword);
+
+    if (!isVerified) {
+      return { error: "Invalid credentials ❌!" };
+    }
+
+    await createSession(user.id);
+    return { success: true, firstName: user.firstName };
+  } catch (error) {
+    if (error) {
+      return { error: "Session already exists" };
+    }
+    return { error: "Failed to sign in. Please try again!" };
+  }
+}

@@ -38,26 +38,33 @@ export default function Navigation() {
 
       <nav className="flex items-center gap-4">
         {[
-          { label: "Home", icon: <Home className="w-4 h-4 text-gray-600" /> },
+          {
+            label: "Home",
+            icon: <Home className="w-4 h-4 text-gray-600" />,
+            href: "/dashboard/",
+          },
           {
             label: "Meal Plans",
             icon: <Apple className="w-4 h-4 text-gray-600" />,
+            href: "/dashboard/meal-plans",
           },
           {
             label: "Nutrition",
             icon: <HeartPlus className="w-4 h-4 text-gray-600" />,
+            href: "/dashboard/nutrition",
           },
           {
             label: "Recipes",
             icon: <Newspaper className="w-4 h-4 text-gray-600" />,
+            href: "/dashboard/recipes",
           },
-        ].map(({ label, icon }, index) => (
+        ].map(({ label, icon, href }, index) => (
           <div
             key={index}
             className="flex items-center gap-2 bg-gray-200 py-2 px-4 rounded-full shadow-sm"
           >
             <span className="font-bold text-sm text-gray-600">
-              <Link href="/">{label}</Link>
+              <Link href={`${href}`}>{label}</Link>
             </span>
             {icon}
           </div>

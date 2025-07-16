@@ -4,6 +4,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { signIn } from "@/lib/auth-actions.";
+import { toast, Toaster } from "sonner";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email"),
@@ -27,17 +29,22 @@ export default function LoginPage() {
 
   async function onSubmit(inputData: LoginFromData) {
     setIsLoading(true);
+    setError(null);
 
     const formData = new FormData();
     formData.append("email", inputData.email);
-    formData.append("passwrod", inputData.password);
+    formData.append("password", inputData.password);
 
     try {
-      //     const result = signIn(formData);
-      //   if (result?.error) {
-      //     setError(result.error);
-      //   }
-      //   return;
+      const result = await signIn(formData);
+      if (result?.success) {
+        sessionStorage.setItem("firstName", result.firstName as string);
+        toast("Successfully logged in ✅!");
+        window.location.href = "/dashboard";
+      }
+      if (result?.error) {
+        setError(result.error);
+      }
     } catch {
       setError("Unexpected error has occurred");
     } finally {
@@ -123,6 +130,7 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+        <Toaster />
       </div>
     </div>
   );
