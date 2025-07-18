@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SearchRecipe from "./search-recipe";
+import SearchRecipes from "@/app/dashboard/recipes/SearchRecipes";
 
 export default function Header() {
   const [name, setName] = useState<String | null>(null);
@@ -24,7 +24,7 @@ export default function Header() {
         <div>You are achieving greatness</div>
       </div>
       <div className="flex-grow">
-        <SearchRecipe />
+        <SearchRecipes />
       </div>
     </div>
   );
