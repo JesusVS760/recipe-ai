@@ -1,27 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SearchRecipes from "./SearchRecipes";
+import { useSearchParams } from "next/navigation";
 import RecipeCard from "./recipe-card";
+import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 
 export default function RecipesPage() {
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [defaultRecipes, setDefaultRecipes] = useState([]);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search");
 
-  // Load default recipes on component mount
+  const { loading, recipes, searchRecipes } = useRecipeSearch();
+  const [defaultRecipes, setDefaultRecipes] = useState([]);
+  const [currentRecipes, setCurrentRecipes] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   useEffect(() => {
-    loadDefaultRecipes();
-  }, []);
+    if (searchQuery) {
+      // Perform search if there's a search query in URL
+      setIsSearching(true);
+      performSearch(searchQuery);
+    } else {
+      // Load default recipes
+      loadDefaultRecipes();
+      setIsSearching(false);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    // Update current recipes when search results change
+    if (isSearching) {
+      setCurrentRecipes(recipes);
+    } else {
+      setCurrentRecipes(defaultRecipes);
+    }
+  }, [recipes, defaultRecipes, isSearching]);
+
+  const performSearch = async (query: any) => {
+    await searchRecipes(query);
+  };
 
   const loadDefaultRecipes = async () => {
-    // This could be:
-    // - User's saved recipes
-    // - Featured recipes
-    // - Recently viewed recipes
-    // - Popular recipes
     try {
-      // Example: Load from API or local storage
       const savedRecipes = localStorage.getItem("favoriteRecipes");
       if (savedRecipes) {
         setDefaultRecipes(JSON.parse(savedRecipes));
@@ -31,21 +50,34 @@ export default function RecipesPage() {
     }
   };
 
-  const displayedRecipes = isSearching ? searchResults : defaultRecipes;
-  const title = isSearching ? "Search Results" : "Your Recipes";
+  const title = isSearching
+    ? `Search Results for "${searchQuery}"`
+    : "Your Recipes";
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p>Searching...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
-      {displayedRecipes.length > 0 ? (
-        <RecipeCard recipeData={displayedRecipes} />
-      ) : (
-        <div className="text-gray-500 text-center py-8">
-          {isSearching
-            ? "No recipes found. Try a different search."
-            : "No recipes yet. Search for some recipes to get started!"}
-        </div>
-      )}
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        {currentRecipes.length > 0 ? (
+          <RecipeCard recipeData={currentRecipes} />
+        ) : (
+          <div className="text-gray-500 text-center py-8">
+            {isSearching
+              ? "No recipes found. Try a different search."
+              : "No recipes yet. Search for some recipes to get started!"}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

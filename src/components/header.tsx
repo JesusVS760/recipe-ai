@@ -23,9 +23,9 @@ export default function Header() {
         </div>
         <div>You are achieving greatness</div>
       </div>
-      <div className="flex-grow">
+      {/* <div className="flex-grow">
         <SearchRecipes />
-      </div>
+      </div> */}
     </div>
   );
 }
