@@ -18,6 +18,16 @@ export const recipeService = {
       },
     });
   },
+
+  getRecipeById: async (recipeId: string) => {
+    if (!recipeId) return null;
+    return await prisma.recipe.findUnique({
+      where: {
+        id: recipeId,
+      },
+    });
+  },
+
   updateRecipe: async (recipeId: string, data: Prisma.RecipeUpdateInput) => {
     if (!recipeId || !data) {
       throw new Error("No recipe id or data");

@@ -1,11 +1,11 @@
 "use client";
 
-import { useRecipeSearch } from "@/hooks/useRecipeSearch";
+import RecipeCard from "../../../features/recipes/components/recipe-card";
+import { useRecipesSearch } from "@/hooks/useRecipesSearch";
 import { useState } from "react";
-import RecipeCard from "./recipe-card";
 
 export default function SearchRecipes() {
-  const { loading, recipes, searchRecipes } = useRecipeSearch();
+  const { loading, recipes, searchRecipes } = useRecipesSearch();
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchForRecipe = () => {

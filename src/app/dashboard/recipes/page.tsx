@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import RecipeCard from "./recipe-card";
-import { useRecipeSearch } from "@/hooks/useRecipeSearch";
+import { useRecipesSearch } from "@/hooks/useRecipesSearch";
+import RecipeCard from "../../../features/recipes/components/recipe-card";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search");
 
-  const { loading, recipes, searchRecipes } = useRecipeSearch();
+  const { loading, recipes, searchRecipes } = useRecipesSearch();
   const [defaultRecipes, setDefaultRecipes] = useState([]);
   const [currentRecipes, setCurrentRecipes] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
