@@ -1,64 +1,47 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRecipesSearch } from "@/hooks/useRecipesSearch";
 import RecipeCard from "../../../features/recipes/components/recipe-card";
+import { useSavedRecipes } from "@/hooks/useSavedRecipes";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search");
 
   const { loading, recipes, searchRecipes } = useRecipesSearch();
-  const [defaultRecipes, setDefaultRecipes] = useState([]);
-  const [currentRecipes, setCurrentRecipes] = useState([]);
+  const { data: savedRecipes = [], isLoading: savedRecipesLoading } =
+    useSavedRecipes();
+
   const [isSearching, setIsSearching] = useState(false);
+
+  // Memoize the current recipes to prevent unnecessary re-renders
+  const currentRecipes = useMemo(() => {
+    return isSearching ? recipes : savedRecipes;
+  }, [isSearching, recipes, savedRecipes]);
 
   useEffect(() => {
     if (searchQuery) {
-      // Perform search if there's a search query in URL
       setIsSearching(true);
       performSearch(searchQuery);
     } else {
-      // Load default recipes
-      loadDefaultRecipes();
       setIsSearching(false);
     }
-  }, [searchQuery]);
-
-  useEffect(() => {
-    // Update current recipes when search results change
-    if (isSearching) {
-      setCurrentRecipes(recipes);
-    } else {
-      setCurrentRecipes(defaultRecipes);
-    }
-  }, [recipes, defaultRecipes, isSearching]);
+  }, [searchQuery]); // Only depend on searchQuery
 
   const performSearch = async (query: any) => {
     await searchRecipes(query);
-  };
-
-  const loadDefaultRecipes = async () => {
-    try {
-      const savedRecipes = localStorage.getItem("favoriteRecipes");
-      if (savedRecipes) {
-        setDefaultRecipes(JSON.parse(savedRecipes));
-      }
-    } catch (error) {
-      console.error("Error loading default recipes:", error);
-    }
   };
 
   const title = isSearching
     ? `Search Results for "${searchQuery}"`
     : "Your Recipes";
 
-  if (loading) {
+  if (loading || (!isSearching && savedRecipesLoading)) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <p>Searching...</p>
+          <p>{isSearching ? "Searching..." : "Loading your recipes..."}</p>
         </div>
       </div>
     );
