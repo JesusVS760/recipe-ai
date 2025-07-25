@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useRecipesSearch } from "@/hooks/useRecipesSearch";
 import RecipeCard from "../../../features/recipes/components/recipe-card";
 import { useSavedRecipes } from "@/hooks/useSavedRecipes";
+import SavedRecipeCard from "@/features/recipes/components/saved-recipe-card";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
@@ -16,9 +17,13 @@ export default function RecipesPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   // Memoize the current recipes to prevent unnecessary re-renders
-  const currentRecipes = useMemo(() => {
-    return isSearching ? recipes : savedRecipes;
-  }, [isSearching, recipes, savedRecipes]);
+  const searchResults = useMemo(() => {
+    return isSearching ? recipes : [];
+  }, [isSearching, recipes]);
+
+  const savedOnlyRecipes = useMemo(() => {
+    return savedRecipes;
+  }, [savedRecipes]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -51,13 +56,20 @@ export default function RecipesPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        {currentRecipes.length > 0 ? (
-          <RecipeCard recipeData={currentRecipes} />
+
+        {isSearching ? (
+          searchResults.length > 0 ? (
+            <RecipeCard recipeData={searchResults} />
+          ) : (
+            <div className="text-gray-500 text-center py-8">
+              No recipes found. Try a different search.
+            </div>
+          )
+        ) : savedOnlyRecipes.length > 0 ? (
+          <SavedRecipeCard recipeData={savedOnlyRecipes} />
         ) : (
           <div className="text-gray-500 text-center py-8">
-            {isSearching
-              ? "No recipes found. Try a different search."
-              : "No recipes yet. Search for some recipes to get started!"}
+            No recipes yet. Search for some recipes to get started!
           </div>
         )}
       </div>

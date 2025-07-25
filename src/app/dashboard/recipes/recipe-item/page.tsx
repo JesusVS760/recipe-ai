@@ -16,6 +16,8 @@ import { useRecipeMutations } from "@/hooks/recipe-mutations";
 import { parseInstructions } from "@/lib/utils";
 
 export default function RecipeItem() {
+  const [isActive, setIsActive] = useState(false);
+
   const searchParams = useSearchParams();
   const recipeId = searchParams.get("id");
   const { createRecipe } = useRecipeMutations();
@@ -42,6 +44,7 @@ export default function RecipeItem() {
         prepTime: received.preparationMinutes || 0,
         cookTime: received.cookingMinutes || 0,
         servings: received.servings,
+        imageUrl: received.image,
         difficulty: "Medium", //  hardcode or make it simple
         dietaryTags: received.diets || [],
         user: {
@@ -50,8 +53,8 @@ export default function RecipeItem() {
           },
         },
       };
-
       await createRecipe.mutateAsync(recipeData);
+      setIsActive(!isActive);
       toast("Successfully favorited ✔️!");
     } catch (error) {
       console.log("Error Favoriting");
@@ -99,9 +102,13 @@ export default function RecipeItem() {
                 </HoverCard>
                 <div
                   onClick={handleFavorite}
-                  className="cursor-pointer hover:fill-red-400"
+                  className="cursor-pointer transition-colors duration-200"
                 >
-                  <Heart className="" />
+                  <Heart
+                    className={
+                      isActive ? "fill-red-500 text-red-500" : "fill-none"
+                    }
+                  />
                 </div>
               </div>
               <div>

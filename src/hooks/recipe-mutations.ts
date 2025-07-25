@@ -34,11 +34,12 @@ export const useRecipeMutations = () => {
 
   const deleteRecipe = useMutation({
     mutationFn: async (recipeId: string) => {
-      const { data } = await axios.delete(`/api/recipe/${recipeId}`);
+      const { data } = await axios.delete(`/api/recipes/delete/${recipeId}`);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["savedRecipes"] });
     },
   });
 
