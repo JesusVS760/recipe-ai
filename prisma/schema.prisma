@@ -32,7 +32,7 @@ model Recipe {
   prepTime        Int
   cookTime        Int
   servings        Int
-  difficulty      String
+  difficulty      RecipeDifficulty
   cuisine         String?
   dietaryTags     String[]
   nutrition       Json?
@@ -44,6 +44,13 @@ model Recipe {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
+
+enum RecipeDifficulty {
+  high
+  medium
+  low
+}
+
 
 model MealPlan {
   id          String          @id @default(cuid())

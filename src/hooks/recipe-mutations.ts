@@ -12,6 +12,7 @@ export const useRecipeMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["savedRecipes"] });
     },
   });
   // fix update mutation later

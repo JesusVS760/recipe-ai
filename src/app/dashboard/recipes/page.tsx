@@ -5,6 +5,7 @@ import { useRecipesSearch } from "@/hooks/useRecipesSearch";
 import RecipeCard from "../../../features/recipes/components/recipe-card";
 import { useSavedRecipes } from "@/hooks/useSavedRecipes";
 import SavedRecipeCard from "@/features/recipes/components/saved-recipe-card";
+import { RecipeSheet } from "@/features/recipes/components/recipe-sheet";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
@@ -55,8 +56,14 @@ export default function RecipesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-4">{title}</h2>
-
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">{title}</h2>
+          </div>
+          <div>
+            <RecipeSheet />
+          </div>
+        </div>
         {isSearching ? (
           searchResults.length > 0 ? (
             <RecipeCard recipeData={searchResults} />

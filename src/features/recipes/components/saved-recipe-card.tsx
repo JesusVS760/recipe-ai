@@ -3,6 +3,8 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { toast, Toaster } from "sonner";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RecipeSheet } from "./recipe-sheet";
 
 export default function SavedRecipeCard({ recipeData }: any) {
   const { deleteRecipe } = useRecipeMutations();
@@ -25,37 +27,39 @@ export default function SavedRecipeCard({ recipeData }: any) {
   };
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div>
       <Toaster />
       <ConfirmDialog />
-
-      {recipeData.map((recipe: any) => (
-        <div
-          key={recipe.id}
-          className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-md  cursor-pointer hover:bg-amber-600 shadow-xl border-1 border-gray-200"
-        >
-          <div>
-            <img
-              className="rounded-2xl outline-2"
-              src={recipe.imageUrl}
-              alt={recipe.title}
-            />
-            <h2 className="text-black text-lg font-bold mt-2">
-              {recipe.aggregateLikes}
-            </h2>
+      {/* <RecipeSheet /> */}
+      <div className="grid grid-cols-3 gap-3">
+        {recipeData.map((recipe: any) => (
+          <div
+            key={recipe.id}
+            className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-md  cursor-pointer hover:bg-amber-600 shadow-xl border-1 border-gray-200"
+          >
+            <div>
+              <img
+                className="rounded-2xl outline-2"
+                src={recipe.imageUrl}
+                alt={recipe.title}
+              />
+              <h2 className="text-black text-lg font-bold mt-2">
+                {recipe.aggregateLikes}
+              </h2>
+            </div>
+            <h3 className="font-semibold">{recipe.title}</h3>
+            <div onClick={() => handleCancel(recipe.id)}>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className=" cursor-pointer text-black hover:text-gray-600"
+              >
+                <Trash size={18} />
+              </motion.button>
+            </div>
           </div>
-          <h3 className="font-semibold">{recipe.title}</h3>
-          <div onClick={() => handleCancel(recipe.id)}>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className=" cursor-pointer text-black hover:text-gray-600"
-            >
-              <Trash size={18} />
-            </motion.button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
