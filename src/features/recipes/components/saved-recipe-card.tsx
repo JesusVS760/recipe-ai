@@ -43,19 +43,25 @@ export default function SavedRecipeCard({ recipeData }: any) {
                 src={recipe.imageUrl}
                 alt={recipe.title}
               />
-              <h2 className="text-black text-lg font-bold mt-2">
-                {recipe.aggregateLikes}
-              </h2>
             </div>
-            <h3 className="font-semibold">{recipe.title}</h3>
-            <div onClick={() => handleCancel(recipe.id)}>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className=" cursor-pointer text-black hover:text-gray-600"
-              >
-                <Trash size={18} />
-              </motion.button>
+            <div>
+              <div>
+                <h3 className="font-semibold">{recipe.title}</h3>
+              </div>
+              <div>
+                <div onClick={() => handleCancel(recipe.id)}>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className=" cursor-pointer text-black hover:text-gray-600"
+                  >
+                    <Trash size={18} />
+                  </motion.button>
+                </div>
+                <div>
+                  <h3>{recipe.readyInMinutes}</h3>
+                </div>
+              </div>
             </div>
           </div>
         ))}
