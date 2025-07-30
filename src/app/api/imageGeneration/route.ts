@@ -3,11 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
-    const result = imageGenerationService.generateImage(text);
+    const body = await req.json();
+    console.log("API: Full request body:", body);
 
+    const { text } = body;
+    console.log("API: Extracted text:", text);
+
+    const result = await imageGenerationService.generateImage(text);
     if (!result) {
-      return "Invalid image";
+      return NextResponse.json({ error: "Invalid image" }, { status: 400 });
     }
     return NextResponse.json(result);
   } catch (error) {

@@ -3,11 +3,14 @@ import { ImageSystemPrompt, openai } from "@/lib/openai";
 export const imageGenerationService = {
   async generateImage(data: any) {
     try {
-      const prompt = `${ImageSystemPrompt}, RECIPE DATA: ${data}`;
+      console.log("Service: generateImage called with:", data);
+      console.log("Service: Data type:", typeof data);
+
+      const simplePrompt = `Create a high-quality food photo of ${data.title}. Make it look delicious and professionally plated.`;
 
       const response = await openai.images.generate({
         model: "dall-e-3",
-        prompt: prompt,
+        prompt: simplePrompt,
         n: 1,
         size: "1024x1024",
         response_format: "b64_json",
@@ -17,21 +20,20 @@ export const imageGenerationService = {
         console.log("No image data received");
         return "";
       }
+      console.log("Service: OpenAI response received");
+      console.log("Service: Response data length:", response.data?.length);
+
+      if (!response.data || response.data.length === 0) {
+        console.log("Service: No image data received from OpenAI");
+        return null;
+      }
 
       const imageBase64 = response.data[0].b64_json;
-
-      if (imageBase64) {
-        const fs = await import("fs");
-        fs.writeFileSync(
-          "generated_image.png",
-          Buffer.from(imageBase64, "base64")
-        );
-      }
 
       return imageBase64;
     } catch (error) {
       console.log("Error generating image:", error);
-      return "";
+      return null;
     }
   },
 };

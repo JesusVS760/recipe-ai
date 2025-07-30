@@ -39,7 +39,7 @@ export default function SavedRecipeCard({ recipeData }: any) {
           >
             <div>
               <img
-                className="rounded-2xl outline-2"
+                className="rounded-2xl outline-2 h-50 w-70"
                 src={recipe.imageUrl}
                 alt={recipe.title}
               />

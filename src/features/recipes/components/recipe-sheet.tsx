@@ -14,7 +14,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useImageGenerationMutations } from "@/hooks/image-generation-mutations";
 import { useRecipeMutations } from "@/hooks/recipe-mutations";
+import { imageGenerationService } from "@/services/image-generation-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -27,7 +29,6 @@ const RecipeDifficulty = z.enum(["high", "medium", "low"]);
 const RecipeSheetSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  // Make image optional since it's commented out in the form
   image: z
     .instanceof(File)
     .refine((file) => file.size > 0, { message: "Image is required" })
@@ -51,6 +52,7 @@ export function RecipeSheet() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const { createRecipe } = useRecipeMutations();
+  const { createImage } = useImageGenerationMutations();
 
   const {
     register,
@@ -68,6 +70,21 @@ export function RecipeSheet() {
     setError(null);
     setIsLoading(true);
 
+    let imageUrl: string | File | undefined = data.image;
+
+    try {
+      const imageResponse = await createImage.mutateAsync(data);
+      console.log("Image data: ", imageResponse.data);
+
+      if (imageResponse?.data) {
+        console.log("Image data: ", imageResponse.data);
+        imageUrl = `data:image/png;base64,${imageResponse.data}`;
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      toast("Failed to generate image, proceeding without image");
+    }
+
     try {
       const jsonData = {
         title: data.title,
@@ -80,9 +97,9 @@ export function RecipeSheet() {
         prepTime: data.prepTime,
         cookTime: data.cookTime,
         servings: data.servings,
+        imageUrl: imageUrl,
       };
 
-      console.log("Calling createRecipe mutation with JSON data...");
       await createRecipe.mutateAsync(jsonData);
 
       toast("Successfully created recipe ✔️!");
@@ -251,7 +268,7 @@ export function RecipeSheet() {
               )}
             </div>
 
-            {/* Uncomment when you want to add image upload */}
+            {/* Uncomment when you want to add image upload  */}
             {/* <div className="flex flex-col p-4 gap-2">
               <label className="font-semibold">Image</label>
               <input
