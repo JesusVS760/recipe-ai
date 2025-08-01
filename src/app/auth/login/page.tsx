@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { signIn } from "@/lib/auth-actions.";
 import { toast, Toaster } from "sonner";
+import Link from "next/link";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email"),
@@ -131,6 +132,12 @@ export default function LoginPage() {
           </button>
         </form>
         <Toaster />
+        <Link href="/auth/forgot">
+          <p className="text-center pt-2">Forgot Password?</p>
+        </Link>
+        <Link href="/auth/register">
+          <p className="text-center pt-2">Create an account.</p>
+        </Link>
       </div>
     </div>
   );

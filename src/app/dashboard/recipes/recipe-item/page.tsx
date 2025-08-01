@@ -36,6 +36,7 @@ export default function RecipeItem() {
   }, [recipeId]);
 
   async function handleFavorite() {
+    // const difficultyLabel = received.difficulty;
     try {
       const recipeData = {
         title: received.title,
@@ -45,7 +46,7 @@ export default function RecipeItem() {
         cookTime: received.cookingMinutes || 0,
         servings: received.servings,
         imageUrl: received.image,
-        difficulty: "Medium", //  hardcode or make it simple
+        difficulty: "medium", //  hardcode or make it simple
         dietaryTags: received.diets || [],
         user: {
           connect: {

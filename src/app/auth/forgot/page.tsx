@@ -1,6 +1,10 @@
+"use client";
+import { sendVerificationCode } from "@/lib/auth-actions.";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const forgotPasswordSchema = z.object({
@@ -12,6 +16,7 @@ type ForgotPassworData = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPassword() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const {
     register,
@@ -27,17 +32,26 @@ export default function ForgotPassword() {
     setError(null);
     const formData = new FormData();
     formData.append("email", data.email);
+    let shouldRedirect = false;
 
     try {
-      // const result = sendVerificationCode(formData);
-      // if(result.sucess) {
-      // }
-      // if(result.error) {
-      // }
+      const { success, error } = await sendVerificationCode(formData);
+      if (success) {
+        sessionStorage.setItem("verifyEmail", data.email);
+        toast("Succesfully sent. Please check your email ✔️!");
+        shouldRedirect = true;
+        router.push("/auth/reset");
+      }
+      if (error) {
+        toast("Something went wrong, try again!");
+      }
     } catch {
       setError("An unexpected error occurred, try again!");
     } finally {
       setIsLoading(false);
+    }
+    if (shouldRedirect) {
+      router.push("/auth/verify");
     }
   }
 
@@ -81,7 +95,7 @@ export default function ForgotPassword() {
               </div>
             )}
           </div>
-          <button disabled={!isValid || isLoading}>
+          <button disabled={isLoading}>
             {isLoading ? (
               <>
                 <svg

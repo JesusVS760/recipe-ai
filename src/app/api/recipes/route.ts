@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     const recipeData = await req.json();
+    console.log("reached");
     const recipe = await recipeService.createRecipe({
       ...recipeData,
       user: {
@@ -38,6 +39,10 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    if (!recipeData) {
+      console.log("error here");
+    }
     return NextResponse.json({ recipe }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

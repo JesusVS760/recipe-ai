@@ -21,6 +21,7 @@ model User {
   shoppingLists   ShoppingList[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  VerificationToken VerificationToken[]
 }
 
 model Recipe {
@@ -97,4 +98,22 @@ model ShoppingListItem {
   category        String?
   isPurchased     Boolean         @default(false)
   createdAt       DateTime        @default(now())
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid()) 
+  code       String
+  userId     String
+  token      String   @unique
+  type       VerificationType @default(EMAIL_VERIFICATION) 
+  expires    DateTime
+  used       Boolean  @default(false) 
+  createdAt  DateTime @default(now())   
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, token])
+}
+enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR
 }

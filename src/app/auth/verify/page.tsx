@@ -1,6 +1,11 @@
+"use client";
+
+import { VerifyResetCode } from "@/lib/auth-actions.";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const vericationCodeSchema = z.object({
@@ -16,6 +21,8 @@ export default function VerifcationPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, isLoading] = useState(false);
   const [email, setEmail] = useState<string>("");
+
+  const router = useRouter();
 
   const {
     register,
@@ -52,7 +59,15 @@ export default function VerifcationPage() {
     formData.append("email", email);
 
     try {
-      //   await VerifyResetCode(formData);
+      const { error, success } = await VerifyResetCode(formData);
+
+      if (success) {
+        toast("Successfully verified ✔️!");
+        router.push("/auth/reset");
+      }
+      if (error) {
+        setError(error);
+      }
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to verify code"
@@ -130,7 +145,7 @@ export default function VerifcationPage() {
 
           <button
             type="submit"
-            disabled={isButtonDisabled}
+            // disabled={isButtonDisabled}
             className="w-full flex justify-center py-3 cursor-pointer px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
