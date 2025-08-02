@@ -3,6 +3,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
@@ -39,4 +40,8 @@ export async function getSession() {
 
 export async function clearSession() {
   (await cookies()).delete("session");
+}
+
+export async function verifyPassword(password: string, hashPassword: string) {
+  return bcrypt.compare(password, hashPassword);
 }

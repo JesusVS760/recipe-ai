@@ -1,8 +1,11 @@
 "use client";
 
+import { changePassword } from "@/lib/auth-actions.";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const resetSchema = z.object({
@@ -17,6 +20,10 @@ export default function ResetPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const router = useRouter();
+
+  const email = sessionStorage.getItem("verifyEmail") as string;
+
   const {
     register,
     handleSubmit,
@@ -26,21 +33,26 @@ export default function ResetPage() {
   } = useForm({
     resolver: zodResolver(resetSchema),
     mode: "onChange",
-    defaultValues: {
-      email: "",
-    },
   });
 
   async function onSubmit(data: ResetDataType) {
     setIsLoading(true);
     setError(null);
+
     const formData = new FormData();
     formData.append("oldPassword", data.oldPassword);
     formData.append("newPassword", data.newPassword);
-    formData.append("email", data.email);
+    formData.append("email", email);
 
     try {
-      // add logic later
+      const { success, error } = await changePassword(formData);
+      if (success) {
+        toast("Succesfully changed password ✅!");
+        router.push("/dashboard");
+      }
+      if (error) {
+        setError(error);
+      }
     } catch {
       setError("An unexpected error occurred, try again!");
     } finally {
@@ -82,7 +94,7 @@ export default function ResetPage() {
           </h1>
           <p className="text-black/80 ">
             Enter a new password for
-            <span className="text-blue-600 animate-pulse">email</span>
+            <span className="text-blue-600 animate-pulse">{email}</span>
           </p>
         </div>
 
@@ -97,7 +109,7 @@ export default function ResetPage() {
                 type="password"
                 id="oldPassword"
                 maxLength={12}
-                placeholder="Password"
+                placeholder="Old Password"
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.oldPassword && (
@@ -113,7 +125,7 @@ export default function ResetPage() {
                 type="password"
                 id="newPassword"
                 maxLength={12}
-                placeholder="Password"
+                placeholder="New Password"
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.newPassword && (
@@ -128,7 +140,7 @@ export default function ResetPage() {
               </div>
             )}
           </div>
-          <button disabled={isValid || isLoading}>
+          <button type="submit" disabled={!isValid || isLoading}>
             {isLoading ? (
               <>
                 <svg

@@ -151,9 +151,49 @@ export async function VerifyResetCode(formData: FormData) {
       data: { used: true },
     });
 
-    await createSession(user.id);
+    // await createSession(user.id);
     return { success: true };
   } catch (error) {
     return { error: "Verifcation failed" };
+  }
+}
+
+export async function changePassword(formData: FormData) {
+  const oldPassword = formData.get("oldPassword") as string;
+  const newPassword = formData.get("newPassword") as string;
+  const email = formData.get("email") as string;
+
+  if (!oldPassword || !newPassword || !email) {
+    return { error: "Missing required fields" };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return { error: "User not found!" };
+  }
+
+  try {
+    const result = await verifyPassword(oldPassword, user.hashedPassword);
+    if (!result) {
+      return { error: "Current password does not match!" };
+    }
+
+    const hashed = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        hashedPassword: hashed,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { error: "An unexpected error occurred, please try again!" };
   }
 }
