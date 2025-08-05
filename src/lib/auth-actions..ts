@@ -152,6 +152,7 @@ export async function VerifyResetCode(formData: FormData) {
     });
 
     // await createSession(user.id);
+
     return { success: true };
   } catch (error) {
     return { error: "Verifcation failed" };
@@ -176,10 +177,10 @@ export async function changePassword(formData: FormData) {
   }
 
   try {
-    const result = await verifyPassword(oldPassword, user.hashedPassword);
-    if (!result) {
-      return { error: "Current password does not match!" };
-    }
+    // const result = await verifyPassword(oldPassword, user.hashedPassword);
+    // if (!result) {
+    //   return { error: "Current password does not match!" };
+    // }
 
     const hashed = await hashPassword(newPassword);
 
@@ -191,7 +192,6 @@ export async function changePassword(formData: FormData) {
         hashedPassword: hashed,
       },
     });
-
     return { success: true };
   } catch (error) {
     return { error: "An unexpected error occurred, please try again!" };

@@ -3,7 +3,7 @@
 import { changePassword } from "@/lib/auth-actions.";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -19,10 +19,9 @@ type ResetDataType = z.infer<typeof resetSchema>;
 export default function ResetPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [getEmail, setGetEmail] = useState<string>("");
 
   const router = useRouter();
-
-  const email = sessionStorage.getItem("verifyEmail") as string;
 
   const {
     register,
@@ -33,16 +32,42 @@ export default function ResetPage() {
   } = useForm({
     resolver: zodResolver(resetSchema),
     mode: "onChange",
+    defaultValues: {
+      email: "",
+    },
   });
 
+  useEffect(() => {
+    const email = sessionStorage.getItem("verifyEmail");
+    if (email) {
+      setGetEmail(email);
+      setValue("email", email);
+      console.log(email);
+    }
+  }, [setValue]);
+
+  const oldPasswordWatch = watch("oldPassword");
+  const newPasswordWatch = watch("newPassword");
+
+  useEffect(() => {
+    if ((error && oldPasswordWatch) || newPasswordWatch) {
+      setError(null);
+    }
+  }, [oldPasswordWatch, newPasswordWatch]);
+
   async function onSubmit(data: ResetDataType) {
+    if (data.oldPassword !== data.newPassword) {
+      setError("Passwords must match! Try again!");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     const formData = new FormData();
     formData.append("oldPassword", data.oldPassword);
     formData.append("newPassword", data.newPassword);
-    formData.append("email", email);
+    formData.append("email", data.email);
 
     try {
       const { success, error } = await changePassword(formData);
@@ -53,8 +78,10 @@ export default function ResetPage() {
       if (error) {
         setError(error);
       }
-    } catch {
-      setError("An unexpected error occurred, try again!");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to change password"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +121,7 @@ export default function ResetPage() {
           </h1>
           <p className="text-black/80 ">
             Enter a new password for
-            <span className="text-blue-600 animate-pulse">{email}</span>
+            <span className="text-blue-600 animate-pulse">{getEmail}</span>
           </p>
         </div>
 
@@ -109,7 +136,7 @@ export default function ResetPage() {
                 type="password"
                 id="oldPassword"
                 maxLength={12}
-                placeholder="Old Password"
+                placeholder="New password"
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.oldPassword && (
@@ -125,7 +152,7 @@ export default function ResetPage() {
                 type="password"
                 id="newPassword"
                 maxLength={12}
-                placeholder="New Password"
+                placeholder="Repeat new password"
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.newPassword && (
@@ -140,7 +167,11 @@ export default function ResetPage() {
               </div>
             )}
           </div>
-          <button type="submit" disabled={!isValid || isLoading}>
+          <button
+            type="submit"
+            className="w-full flex justify-center py-3 cursor-pointer px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-black hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            disabled={!isValid || isLoading}
+          >
             {isLoading ? (
               <>
                 <svg
