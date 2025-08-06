@@ -192,6 +192,7 @@ export async function changePassword(formData: FormData) {
         hashedPassword: hashed,
       },
     });
+
     return { success: true };
   } catch (error) {
     return { error: "An unexpected error occurred, please try again!" };

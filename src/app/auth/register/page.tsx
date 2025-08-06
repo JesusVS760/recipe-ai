@@ -10,7 +10,7 @@ const signUpSchema = z.object({
   firstname: z.string().min(2).max(12),
   lastname: z.string().min(2).max(12),
   email: z.email(),
-  password: z.string().min(8),
+  password: z.string().min(8).max(16),
 });
 
 type SignUpFromData = z.infer<typeof signUpSchema>;

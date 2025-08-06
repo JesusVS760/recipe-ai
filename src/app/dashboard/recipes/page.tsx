@@ -6,6 +6,8 @@ import RecipeCard from "../../../features/recipes/components/recipe-card";
 import { useSavedRecipes } from "@/hooks/useSavedRecipes";
 import SavedRecipeCard from "@/features/recipes/components/saved-recipe-card";
 import { RecipeSheet } from "@/features/recipes/components/recipe-sheet";
+import IngredientPhotoAnalysis from "@/features/recipes/components/ingredient-photo-analysis-sheet";
+import IngredientCard from "@/features/recipes/components/ingredient-card";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
@@ -39,9 +41,11 @@ export default function RecipesPage() {
     await searchRecipes(query);
   };
 
-  const title = isSearching
+  const recipeTitle = isSearching
     ? `Search Results for "${searchQuery}"`
     : "Your Recipes";
+
+  // const ingredientTitle = isSearching
 
   if (loading || (!isSearching && savedRecipesLoading)) {
     return (
@@ -58,10 +62,15 @@ export default function RecipesPage() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold mb-4">{title}</h2>
+            <h2 className="text-xl font-semibold mb-4">{recipeTitle}</h2>
           </div>
-          <div>
-            <RecipeSheet />
+          <div className="flex gap-4 ">
+            <div>
+              <IngredientPhotoAnalysis />
+            </div>
+            <div>
+              <RecipeSheet />
+            </div>
           </div>
         </div>
         {isSearching ? (
@@ -79,6 +88,14 @@ export default function RecipesPage() {
             No recipes yet. Search for some recipes to get started!
           </div>
         )}
+      </div>
+      <div>
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Your Ingredients</h2>
+        </div>
+        <div>
+          <IngredientCard />
+        </div>
       </div>
     </div>
   );

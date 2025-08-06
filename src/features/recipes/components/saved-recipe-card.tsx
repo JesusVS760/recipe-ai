@@ -3,8 +3,6 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { toast, Toaster } from "sonner";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { RecipeSheet } from "./recipe-sheet";
 
 export default function SavedRecipeCard({ recipeData }: any) {
   const { deleteRecipe } = useRecipeMutations();
@@ -30,7 +28,6 @@ export default function SavedRecipeCard({ recipeData }: any) {
     <div>
       <Toaster />
       <ConfirmDialog />
-      {/* <RecipeSheet /> */}
       <div className="grid grid-cols-3 gap-3">
         {recipeData.map((recipe: any) => (
           <div
