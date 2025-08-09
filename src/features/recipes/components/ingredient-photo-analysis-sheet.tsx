@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useIngredientMutations } from "@/hooks/ingredient-mutations";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,7 +28,7 @@ export default function IngredientPhotoAnalysis() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
+  const { generateIngredients } = useIngredientMutations();
   const {
     handleSubmit,
     register,
@@ -39,6 +40,8 @@ export default function IngredientPhotoAnalysis() {
     setIsLoading(true);
 
     try {
+      const ingredientData = await generateIngredients.mutateAsync(data.image);
+      console.log("data", ingredientData);
     } catch (error) {
       console.error("Error generating image:", error);
       toast("Failed to generate recipe!");

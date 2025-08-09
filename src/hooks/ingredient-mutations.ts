@@ -5,9 +5,16 @@ export const useIngredientMutations = () => {
   const queryClient = useQueryClient();
 
   const generateIngredients = useMutation({
-    mutationFn: async (data: any) => {
-      const result = axios.post("/api/...", data);
-      return result;
+    mutationFn: async (image: File) => {
+      const formData = new FormData();
+      formData.append("image", image);
+
+      const result = await axios.post("/api/ingredients/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ingredients"] });
