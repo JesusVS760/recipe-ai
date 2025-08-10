@@ -1,13 +1,9 @@
 import { openai } from "@/lib/openai";
 import { prisma } from "@/lib/prisma";
 
-const uploadImage = async (file: File): Promise<string> => {
-  throw new Error("Image upload not implemented");
-};
-
-const analyzeIngredientImage = async (imageUrl: string) => {
+const analyzeIngredientImage = async (base64Image: string) => {
   const response = await openai.chat.completions.create({
-    model: "gpt-4-vision-preview",
+    model: "gpt-4o", // Updated model
     messages: [
       {
         role: "user",
@@ -28,18 +24,18 @@ const analyzeIngredientImage = async (imageUrl: string) => {
                 }
               ],
               "nutrition": {
-                "calories": number,
-                "protein": number,
-                "carbs": number,
-                "fat": number,
-                "fiber": number,
+                "calories": 100,
+                "protein": 5,
+                "carbs": 20,
+                "fat": 2,
+                "fiber": 3,
                 "servingSize": "100g"
               }
             }`,
           },
           {
             type: "image_url",
-            image_url: { url: imageUrl },
+            image_url: { url: base64Image },
           },
         ],
       },
@@ -56,37 +52,17 @@ const analyzeIngredientImage = async (imageUrl: string) => {
 };
 
 export const ingredientService = {
-  createIngredient: async (data: {
-    imageFile?: File;
-    imageUrl?: string;
-    userId: string;
-    [key: string]: any;
-  }) => {
+  createIngredient: async (data: { base64Image: string; userId: string }) => {
     try {
-      let imageUrl = data.imageUrl;
-
-      if (data.imageFile) {
-        imageUrl = await uploadImage(data.imageFile);
-      }
-
-      if (!imageUrl) {
-        throw new Error("No image URL available for analysis");
-      }
-
-      const analysis = await analyzeIngredientImage(imageUrl);
+      const analysis = await analyzeIngredientImage(data.base64Image);
 
       const ingredientData = {
         userId: data.userId,
-        imageUrl,
-        ingredients: analysis.ingredients,
-        nutrition: analysis.nutrition,
+        imageUrl: "", // No image URL since we're not storing the image
+        ingredients: analysis.ingredients || [],
+        nutrition: analysis.nutrition || {},
         isAiGenerated: true,
         analysisStatus: "completed",
-        ...Object.fromEntries(
-          Object.entries(data).filter(
-            ([key]) => !["imageFile", "imageUrl", "userId"].includes(key)
-          )
-        ),
       };
 
       const ingredient = await prisma.ingredientAnalysis.create({
@@ -103,16 +79,23 @@ export const ingredientService = {
 
       return ingredient;
     } catch (error) {
-      await prisma.ingredientAnalysis.create({
-        data: {
-          userId: data.userId,
-          imageUrl: data.imageUrl || "",
-          ingredients: {},
-          nutrition: [],
-          isAiGenerated: true,
-          analysisStatus: "failed",
-        },
-      });
+      console.error("Error in createIngredient:", error);
+
+      // Create a failed analysis record
+      try {
+        await prisma.ingredientAnalysis.create({
+          data: {
+            userId: data.userId,
+            imageUrl: "",
+            ingredients: [],
+            nutrition: {},
+            isAiGenerated: true,
+            analysisStatus: "failed",
+          },
+        });
+      } catch (dbError) {
+        console.error("Failed to create error record:", dbError);
+      }
 
       if (error instanceof Error) {
         throw new Error(`Failed to create ingredient: ${error.message}`);
@@ -121,7 +104,6 @@ export const ingredientService = {
       throw new Error("Failed to create ingredient: Unknown error");
     }
   },
-
   getIngredients: async (userId: string) => {
     if (!userId) {
       return [];

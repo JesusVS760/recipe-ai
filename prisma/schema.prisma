@@ -64,7 +64,6 @@ model IngredientAnalysis {
 }
 
 
-
 enum RecipeDifficulty {
   high
   medium

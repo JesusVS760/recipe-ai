@@ -6,7 +6,7 @@ export const useImageGenerationMutations = () => {
 
   const createImage = useMutation({
     mutationFn: async (data: any) => {
-      console.log("Mutation: Sending data:", data); // Debug log
+      console.log("Mutation: Sending data:", data);
       const result = await axios.post("/api/imageGeneration", { text: data });
       return result;
     },

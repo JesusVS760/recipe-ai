@@ -22,28 +22,55 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getSession();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const formData = await req.formData();
-    const image = formData.get("image") as File;
+    const file = formData.get("image") as File;
+    const userId = formData.get("userId") as string;
 
-    if (!image) {
-      return NextResponse.json({ error: "No image provided" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json(
+        { error: "No image file provided" },
+        { status: 400 }
+      );
     }
 
-    const ingredient = await ingredientService.createIngredient({
-      imageFile: image,
-      userId: user.id,
-    });
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ ingredient }, { status: 201 });
+    // Convert file to base64 - stream approach
+    const chunks: Uint8Array[] = [];
+    const reader = file.stream().getReader();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    const buffer = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+    const base64Image = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    const result = await ingredientService.createIngredient({
+      base64Image: base64Image,
+      userId: userId,
+    });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
+    console.error("API Error:", error);
+
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
     return NextResponse.json(
-      { error: "Unable to create ingredient" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
