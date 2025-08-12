@@ -24,7 +24,9 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("image") as File;
-    const userId = formData.get("userId") as string;
+
+    const user = await getSession();
+    console.log(user?.id);
 
     if (!file) {
       return NextResponse.json(
@@ -33,34 +35,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!userId) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
       );
     }
 
-    // Convert file to base64 - stream approach
-    const chunks: Uint8Array[] = [];
-    const reader = file.stream().getReader();
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) chunks.push(value);
-      }
-    } finally {
-      reader.releaseLock();
-    }
-
-    const buffer = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
     const base64Image = `data:${file.type};base64,${buffer.toString("base64")}`;
 
     const result = await ingredientService.createIngredient({
       base64Image: base64Image,
-      userId: userId,
+      userId: user.id,
     });
+
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("API Error:", error);
