@@ -1,18 +1,18 @@
 import { prisma } from "@/lib/prisma";
 
 export const mealPlanService = {
-  getMealPlan: async (userId: string) => {
+  getMealPlans: async (userId: string) => {
     if (!userId) {
       return [];
     }
-    return prisma.mealPlan.findMany({ where: { userId: userId } });
+    return await prisma.mealPlan.findMany({ where: { userId: userId } });
   },
 
   updateMealPlan: async (mealPlanId: string, data: any) => {
     if (!mealPlanId || !data) {
       throw new Error("No meal plan id or data");
     }
-    return prisma.mealPlan.update({
+    return await prisma.mealPlan.update({
       data,
       where: {
         id: mealPlanId,
@@ -24,7 +24,7 @@ export const mealPlanService = {
     if (!mealPlanId) {
       throw new Error("No meal plan Id");
     }
-    return prisma.mealPlan.delete({
+    return await prisma.mealPlan.delete({
       where: {
         id: mealPlanId,
       },

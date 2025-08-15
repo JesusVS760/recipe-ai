@@ -7,40 +7,53 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useMealPlanMutations } from "@/hooks/mealPlans/meal-plan-mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast, Toaster } from "sonner";
 import z from "zod";
 
-const mealPlanSchema = z.object({});
+const mealPlanSchema = z.object({
+  name: z.string().min(1).max(16),
+  startDate: z.date(),
+  endDate: z.date(),
+});
 
-type mealPlanData = z.infer<typeof mealPlanSchema>;
+type mealPlanSheetData = z.infer<typeof mealPlanSchema>;
 
 export default function MealPlanSheet() {
   const [error, setError] = useState<string | null>();
   const [loading, setLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
+  const { createMealPlan } = useMealPlanMutations();
+
   const {
     register,
     handleSubmit,
-    formState: { isValid, isLoading },
-  } = useForm<mealPlanData>({
+    formState: { isValid, isLoading, errors },
+  } = useForm<mealPlanSheetData>({
     resolver: zodResolver(mealPlanSchema),
     mode: "onChange",
   });
 
-  async function onSubmit(data: mealPlanData) {
+  async function onSubmit(data: mealPlanSheetData) {
     setLoading(false);
     setError(null);
 
     try {
+      const createMealResponse = await createMealPlan.mutateAsync(data);
+      console.log(createMealResponse);
+      ("Successfully created meal plan 🥗!");
     } catch (error) {
+      toast("Failed to create meal plan, please try again!");
       setError("An unexpected error as occurred, please try again!");
     }
   }
   return (
     <div>
+      <Toaster />
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger
           className="bg-gray-600 text-white p-2 px-4 rounded-md font-semibold"
@@ -48,16 +61,13 @@ export default function MealPlanSheet() {
         >
           Create Meal Plan
         </SheetTrigger>
-        <SheetContent className="w-full h-full max-w-none p-0 bg-white">
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen">
           <SheetHeader>
             <SheetTitle>Meal Plan Creation</SheetTitle>
             <SheetDescription>
-              <SheetTitle>Meal Plan Creation</SheetTitle>
-              <SheetDescription>
-                Transform your weekly cooking from chaos to organized. Generate
-                custom meal plans that save time, reduce food waste, and keep
-                your nutrition on track
-              </SheetDescription>
+              Transform your weekly cooking from chaos to organized. Generate
+              custom meal plans that save time, reduce food waste, and keep your
+              nutrition on track
             </SheetDescription>
           </SheetHeader>
           {error && (
@@ -67,9 +77,46 @@ export default function MealPlanSheet() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div></div>
-            <div></div>
-            <div></div>
+            <div className="flex flex-col p-4 gap-2">
+              <label className="font-semibold">Recipe Title</label>
+              <input
+                {...register("name")}
+                type="text"
+                className="outline p-2 rounded-md border"
+                placeholder="e.g Progressive weight loss"
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col p-4 gap-2">
+              <label className="font-semibold">Start Date</label>
+              <input
+                {...register("startDate")}
+                type="date"
+                className="border p-2 rounded"
+              />
+              {errors.startDate && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.startDate.message}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col p-4 gap-2">
+              <label className="font-semibold">Image</label>
+              <input
+                {...register("endDate")}
+                type="date"
+                className="border p-2 rounded"
+              />
+              {errors.endDate && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.endDate.message}
+                </p>
+              )}
+            </div>
             <button
               type="submit"
               disabled={isLoading}

@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { useRecipesSearch } from "@/hooks/useRecipesSearch";
+import { useRecipesSearch } from "@/hooks/recipes/useRecipesSearch";
 import RecipeCard from "../../../features/recipes/components/recipe-card";
-import { useSavedRecipes } from "@/hooks/useSavedRecipes";
+import { useSavedRecipes } from "@/hooks/recipes/useSavedRecipes";
 import SavedRecipeCard from "@/features/recipes/components/saved-recipe-card";
 import { RecipeSheet } from "@/features/recipes/components/recipe-sheet";
-import IngredientPhotoAnalysis from "@/features/recipes/components/ingredient-photo-analysis-sheet";
-import IngredientCard from "@/features/recipes/components/ingredient-card";
+import IngredientPhotoAnalysis from "@/features/ingredients/components/ingredient-photo-analysis-sheet";
+import IngredientCard from "@/features/ingredients/components/ingredient-card";
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();

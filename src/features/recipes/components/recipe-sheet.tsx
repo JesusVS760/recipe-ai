@@ -14,8 +14,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useImageGenerationMutations } from "@/hooks/image-generation-mutations";
-import { useRecipeMutations } from "@/hooks/recipe-mutations";
+import { useImageGenerationMutations } from "@/hooks/imageGeneration/image-generation-mutations";
+import { useRecipeMutations } from "@/hooks/recipes/recipe-mutations";
 import { imageGenerationService } from "@/services/image-generation-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";

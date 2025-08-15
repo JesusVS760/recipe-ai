@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useIngredientMutations } from "@/hooks/ingredient-mutations";
+import { useIngredientMutations } from "@/hooks/ingredients/ingredient-mutations";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

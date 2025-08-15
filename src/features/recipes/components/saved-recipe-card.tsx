@@ -1,4 +1,4 @@
-import { useRecipeMutations } from "@/hooks/recipe-mutations";
+import { useRecipeMutations } from "@/hooks/recipes/recipe-mutations";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast, Toaster } from "sonner";
 import { motion } from "framer-motion";

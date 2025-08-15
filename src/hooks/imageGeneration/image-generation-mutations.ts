@@ -11,7 +11,7 @@ export const useImageGenerationMutations = () => {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      // queryClient.invalidateQueries({ queryKey: ["recipes"] });
       queryClient.invalidateQueries({ queryKey: ["savedRecipes"] });
     },
   });

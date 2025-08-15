@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useRecipesSearch } from "@/hooks/useRecipesSearch";
+import { useRecipesSearch } from "@/hooks/recipes/useRecipesSearch";
 import { Archive, Heart, Save } from "lucide-react";
 import {
   HoverCard,
@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast, Toaster } from "sonner";
-import { useRecipeMutations } from "@/hooks/recipe-mutations";
+import { useRecipeMutations } from "@/hooks/recipes/recipe-mutations";
 import { parseInstructions } from "@/lib/utils";
 
 export default function RecipeItem() {
