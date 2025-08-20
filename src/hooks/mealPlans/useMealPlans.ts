@@ -5,8 +5,10 @@ export const useMealPlans = () => {
   return useQuery({
     queryKey: ["mealPlans"],
     queryFn: async () => {
-      const { data } = await axios("/apl/mealPlans");
-      return data;
+      console.log("Fetching meal plans...");
+      const { data } = await axios("/api/mealPlans");
+      console.log("API response:", data);
+      return data.mealPlans || data;
     },
   });
 };

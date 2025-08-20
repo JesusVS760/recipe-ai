@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
     }
 
     const recipeData = await req.json();
-    console.log("reached");
     const recipe = await recipeService.createRecipe({
       ...recipeData,
       user: {

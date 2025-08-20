@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
 export const mealPlanService = {
+  createMealPlan: async (data: any) => {
+    return await prisma.mealPlan.create({ data });
+  },
+
   getMealPlans: async (userId: string) => {
     if (!userId) {
       return [];

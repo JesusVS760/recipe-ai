@@ -9,18 +9,38 @@ import {
 } from "@/components/ui/sheet";
 import { useMealPlanMutations } from "@/hooks/mealPlans/meal-plan-mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast, Toaster } from "sonner";
 import z from "zod";
 
-const mealPlanSchema = z.object({
+const mealPlanFormSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .max(16, "Name must be 16 characters or less"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+  })
+  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
+    message: "End date must be after or equal to start date",
+    path: ["endDate"],
+  });
+
+const mealPlanApiSchema = z.object({
   name: z.string().min(1).max(16),
-  startDate: z.date(),
-  endDate: z.date(),
+  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid datetime format",
+  }),
+  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid datetime format",
+  }),
 });
 
-type mealPlanSheetData = z.infer<typeof mealPlanSchema>;
+type MealPlanFormData = z.infer<typeof mealPlanFormSchema>;
+type MealPlanApiData = z.infer<typeof mealPlanApiSchema>;
 
 export default function MealPlanSheet() {
   const [error, setError] = useState<string | null>();
@@ -29,28 +49,44 @@ export default function MealPlanSheet() {
 
   const { createMealPlan } = useMealPlanMutations();
 
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
-    formState: { isValid, isLoading, errors },
-  } = useForm<mealPlanSheetData>({
-    resolver: zodResolver(mealPlanSchema),
+    reset,
+    formState: { isValid, isSubmitting, errors },
+  } = useForm<MealPlanFormData>({
+    resolver: zodResolver(mealPlanFormSchema),
     mode: "onChange",
   });
 
-  async function onSubmit(data: mealPlanSheetData) {
-    setLoading(false);
+  async function onSubmit(data: MealPlanFormData) {
+    setLoading(true);
     setError(null);
 
     try {
-      const createMealResponse = await createMealPlan.mutateAsync(data);
+      // Transform form data to API format
+      const apiData: MealPlanApiData = {
+        name: data.name,
+        startDate: new Date(data.startDate + "T00:00:00.000Z").toISOString(),
+        endDate: new Date(data.endDate + "T00:00:00.000Z").toISOString(),
+      };
+
+      const createMealResponse = await createMealPlan.mutateAsync(apiData);
       console.log(createMealResponse);
-      ("Successfully created meal plan 🥗!");
+      await queryClient.invalidateQueries({ queryKey: ["mealPlans"] });
+
+      toast("Successfully created meal plan 🥗!");
+      setIsOpen(false);
+      reset(); // Reset form after successful submission
     } catch (error) {
       toast("Failed to create meal plan, please try again!");
-      setError("An unexpected error as occurred, please try again!");
+      setError("An unexpected error occurred, please try again!");
+    } finally {
+      setLoading(false);
     }
   }
+
   return (
     <div>
       <Toaster />
@@ -105,7 +141,7 @@ export default function MealPlanSheet() {
               )}
             </div>
             <div className="flex flex-col p-4 gap-2">
-              <label className="font-semibold">Image</label>
+              <label className="font-semibold">End Date</label>
               <input
                 {...register("endDate")}
                 type="date"
@@ -119,10 +155,10 @@ export default function MealPlanSheet() {
             </div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || loading}
               className="w-full flex justify-center py-3 cursor-pointer px-4 border border-transparent bg-black rounded-lg shadow-sm text-sm font-medium text-white hover:bg-gray-800 focus:outline-none disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? (
+              {isSubmitting || loading ? (
                 <>
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -148,7 +184,7 @@ export default function MealPlanSheet() {
               ) : (
                 "Create"
               )}
-            </button>{" "}
+            </button>
           </form>
         </SheetContent>
       </Sheet>

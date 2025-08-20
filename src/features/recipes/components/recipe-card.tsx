@@ -14,7 +14,7 @@ export default function RecipeCard({ recipeData }: any) {
         <div
           onClick={() => handleClick(recipe)}
           key={recipe.id}
-          className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-amber-200 group cursor-pointer transform hover:-translate-y-1"
+          className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-amber-200 group cursor-pointer transform hover:-translate-y-1 "
         >
           {/* Image Container */}
           <div className="relative overflow-hidden">

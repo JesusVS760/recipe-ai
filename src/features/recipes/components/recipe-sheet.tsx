@@ -71,6 +71,7 @@ export function RecipeSheet() {
     setIsLoading(true);
 
     let imageUrl: string | File | undefined = data.image;
+    let aiGenerated = false;
 
     try {
       const imageResponse = await createImage.mutateAsync(data);
@@ -79,6 +80,7 @@ export function RecipeSheet() {
       if (imageResponse?.data) {
         console.log("Image data: ", imageResponse.data);
         imageUrl = `data:image/png;base64,${imageResponse.data}`;
+        aiGenerated = true;
       }
     } catch (error) {
       console.error("Error generating image:", error);
@@ -98,6 +100,7 @@ export function RecipeSheet() {
         cookTime: data.cookTime,
         servings: data.servings,
         imageUrl: imageUrl,
+        isAiGenerated: aiGenerated,
       };
 
       await createRecipe.mutateAsync(jsonData);

@@ -2,7 +2,7 @@ import { useRecipeMutations } from "@/hooks/recipes/recipe-mutations";
 import { useConfirm } from "@/hooks/use-confirm";
 import { toast, Toaster } from "sonner";
 import { motion } from "framer-motion";
-import { Trash } from "lucide-react";
+import { Badge, Trash } from "lucide-react";
 
 export default function SavedRecipeCard({ recipeData }: any) {
   const { deleteRecipe } = useRecipeMutations();
@@ -11,6 +11,8 @@ export default function SavedRecipeCard({ recipeData }: any) {
     "Are you sure 🤔?",
     "You are about to delete this task"
   );
+
+  console.log(recipeData);
 
   const handleCancel = async (recipeId: string) => {
     const ok = await confirm();
@@ -50,9 +52,16 @@ export default function SavedRecipeCard({ recipeData }: any) {
             {/* Content Container */}
             <div className="p-5">
               {/* Title */}
-              <h3 className="font-bold text-lg text-gray-800 mb-3 line-clamp-2 min-h-[3.5rem]">
-                {recipe.title}
-              </h3>
+              <div className="flex justify-between items-start">
+                <h3 className="font-bold text-lg text-gray-800 mb-3 line-clamp-2 min-h-[3.5rem]">
+                  {recipe.title}
+                </h3>
+                {recipe?.isAiGenerated && (
+                  <span className="ml-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                    AI Generated
+                  </span>
+                )}
+              </div>
 
               {/* Footer with Time and Delete */}
               <div className="flex items-center justify-between">
