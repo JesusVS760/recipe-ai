@@ -38,7 +38,7 @@ export const useMealPlanMutations = () => {
 
   const deleteMealPlan = useMutation({
     mutationFn: async (mealPlanId: string) => {
-      const { data } = await axios.delete("/api/mealPlans");
+      const { data } = await axios.delete(`/api/mealPlans/${mealPlanId}`);
       return data;
     },
     onSuccess: () => {

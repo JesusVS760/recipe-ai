@@ -56,18 +56,23 @@ export default function SignUp() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-sky-600">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <div className="flex flex-col items-center mb-10 gap-2">
-          <label className="font-bold text-black text-2xl"> ✍️ Register</label>
-          <p className="font-semibold text-md">Welcome Back!</p>
-        </div>
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
-        <div>
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      <div className="flex flex-col items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md lg:max-w-xl space-y-6">
+          <h1 className="text-3xl font-bold text-gray-900 text-center">
+            ✍️ Register
+          </h1>
+          <p className="text-md text-gray-700 text-center">
+            Create your account to unlock personalized recipes, smart meal
+            planning, and step-by-step AI cooking guidance.
+          </p>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>

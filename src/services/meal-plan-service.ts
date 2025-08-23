@@ -1,8 +1,27 @@
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const mealPlanService = {
   createMealPlan: async (data: any) => {
-    return await prisma.mealPlan.create({ data });
+    const user = await getSession();
+
+    return await prisma.mealPlan.create({
+      data: {
+        name: data.name,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        items: {
+          createMany: {
+            data: data.items,
+          },
+        },
+        user: {
+          connect: {
+            id: user?.id,
+          },
+        },
+      },
+    });
   },
 
   getMealPlans: async (userId: string) => {

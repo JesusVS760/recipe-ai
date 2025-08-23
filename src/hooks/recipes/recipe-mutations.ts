@@ -54,5 +54,10 @@ export const useRecipeMutations = () => {
     },
   });
 
-  return { createRecipe, deleteRecipe, deleteRecipes, updateRecipe };
+  return {
+    createRecipe,
+    deleteRecipe,
+    deleteRecipes,
+    updateRecipe,
+  };
 };

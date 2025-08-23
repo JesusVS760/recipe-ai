@@ -8,84 +8,98 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useMealPlanMutations } from "@/hooks/mealPlans/meal-plan-mutations";
+import { useRecipeQueries } from "@/hooks/recipes/useRecipesQuery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { toast, Toaster } from "sonner";
 import z from "zod";
 
-const mealPlanFormSchema = z
-  .object({
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .max(16, "Name must be 16 characters or less"),
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().min(1, "End date is required"),
-  })
-  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
-    message: "End date must be after or equal to start date",
-    path: ["endDate"],
-  });
-
-const mealPlanApiSchema = z.object({
-  name: z.string().min(1).max(16),
-  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid datetime format",
-  }),
-  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid datetime format",
-  }),
+// Single schema for the form
+const mealPlanSchema = z.object({
+  name: z.string().min(1, "Name is required").max(16, "Name too long"),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  items: z
+    .array(
+      z.object({
+        recipeId: z.string().min(1, "Recipe is required"),
+        mealType: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+        scheduledFor: z.string().min(1, "Date is required"),
+        servings: z.number().min(1, "Must be at least 1").default(1),
+      })
+    )
+    .min(1, "Add at least one meal"),
 });
 
-type MealPlanFormData = z.infer<typeof mealPlanFormSchema>;
-type MealPlanApiData = z.infer<typeof mealPlanApiSchema>;
+type MealPlan = z.infer<typeof mealPlanSchema>;
 
 export default function MealPlanSheet() {
-  const [error, setError] = useState<string | null>();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { createMealPlan } = useMealPlanMutations();
-
+  const { getRecipes } = useRecipeQueries(); // Add this
+  const recipesQuery = getRecipes(); // Get the query
   const queryClient = useQueryClient();
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isValid, isSubmitting, errors },
-  } = useForm<MealPlanFormData>({
-    resolver: zodResolver(mealPlanFormSchema),
-    mode: "onChange",
+
+  const form = useForm({
+    resolver: zodResolver(mealPlanSchema),
+    defaultValues: {
+      items: [
+        { recipeId: "", mealType: "breakfast", scheduledFor: "", servings: 1 },
+      ],
+    },
   });
 
-  async function onSubmit(data: MealPlanFormData) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  const onSubmit = async (data: MealPlan) => {
     setLoading(true);
-    setError(null);
-
     try {
-      // Transform form data to API format
-      const apiData: MealPlanApiData = {
-        name: data.name,
-        startDate: new Date(data.startDate + "T00:00:00.000Z").toISOString(),
-        endDate: new Date(data.endDate + "T00:00:00.000Z").toISOString(),
-      };
+      await createMealPlan.mutateAsync({
+        ...data,
+        startDate: new Date(data.startDate).toISOString(),
+        endDate: new Date(data.endDate).toISOString(),
+        items: data.items.map((item) => ({
+          ...item,
+          scheduledFor: new Date(item.scheduledFor).toISOString(),
+        })),
+      });
 
-      const createMealResponse = await createMealPlan.mutateAsync(apiData);
-      console.log(createMealResponse);
       await queryClient.invalidateQueries({ queryKey: ["mealPlans"] });
-
-      toast("Successfully created meal plan 🥗!");
+      toast("Meal plan created! 🥗");
       setIsOpen(false);
-      reset(); // Reset form after successful submission
-    } catch (error) {
-      toast("Failed to create meal plan, please try again!");
-      setError("An unexpected error occurred, please try again!");
+      form.reset();
+    } catch {
+      toast("Failed to create meal plan");
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const addMeal = () => {
+    append({
+      recipeId: "",
+      mealType: "breakfast",
+      scheduledFor: "",
+      servings: 1,
+    });
+  };
+
+  const recipes = recipesQuery.data?.recipes;
+  const recipesLoading = recipesQuery.isLoading;
+  const recipesError = recipesQuery.error;
+
+  const mealTypes = [
+    { value: "breakfast", label: "Breakfast" },
+    { value: "lunch", label: "Lunch" },
+    { value: "dinner", label: "Dinner" },
+    { value: "snack", label: "Snack" },
+  ];
 
   return (
     <div>
@@ -97,93 +111,203 @@ export default function MealPlanSheet() {
         >
           Create Meal Plan
         </SheetTrigger>
-        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen">
+
+        <SheetContent className="w-[400px] sm:w-[600px] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Meal Plan Creation</SheetTitle>
+            <SheetTitle>Create Meal Plan</SheetTitle>
             <SheetDescription>
-              Transform your weekly cooking from chaos to organized. Generate
-              custom meal plans that save time, reduce food waste, and keep your
-              nutrition on track
+              Plan your meals for the week ahead
             </SheetDescription>
           </SheetHeader>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col p-4 gap-2">
-              <label className="font-semibold">Recipe Title</label>
-              <input
-                {...register("name")}
-                type="text"
-                className="outline p-2 rounded-md border"
-                placeholder="e.g Progressive weight loss"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.name.message}
-                </p>
-              )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)();
+            }}
+            className="space-y-6 mt-6"
+          >
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <div className="p-4">
+                <label className="block font-medium mb-2 ">Plan Name</label>
+                <input
+                  {...form.register("name")}
+                  type="text"
+                  className="w-full border p-2 rounded"
+                  placeholder="My Weekly Plan"
+                />
+                {form.formState.errors.name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 p-4 gap-4">
+                <div>
+                  <label className="block font-medium mb-2">Start Date</label>
+                  <input
+                    {...form.register("startDate")}
+                    type="date"
+                    className="w-full border p-2 rounded"
+                  />
+                  {form.formState.errors.startDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {form.formState.errors.startDate.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-2">End Date</label>
+                  <input
+                    {...form.register("endDate")}
+                    type="date"
+                    className="w-full border p-2 rounded"
+                  />
+                  {form.formState.errors.endDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {form.formState.errors.endDate.message}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col p-4 gap-2">
-              <label className="font-semibold">Start Date</label>
-              <input
-                {...register("startDate")}
-                type="date"
-                className="border p-2 rounded"
-              />
-              {errors.startDate && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.startDate.message}
-                </p>
-              )}
+
+            {/* Meals */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium text-lg">Meals</h3>
+                <button
+                  type="button"
+                  onClick={addMeal}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  Add Meal
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="border rounded p-4 bg-gray-50">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="font-medium">Meal {index + 1}</span>
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="text-red-500 text-sm hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Recipe
+                        </label>
+                        <select
+                          {...form.register(`items.${index}.recipeId`)}
+                          className="w-full border p-2 rounded text-sm"
+                          disabled={recipesLoading}
+                        >
+                          <option value="">
+                            {recipesLoading
+                              ? "Loading recipes..."
+                              : "Choose recipe"}
+                          </option>
+                          {recipes.map((recipe: any) => (
+                            <option key={recipe.id} value={recipe.id}>
+                              {recipe.title}
+                            </option>
+                          ))}
+                        </select>
+                        {recipesError && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Error loading recipes
+                          </p>
+                        )}
+                        {form.formState.errors.items?.[index]?.recipeId && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {
+                              form.formState.errors.items[index]?.recipeId
+                                ?.message
+                            }
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Type
+                        </label>
+                        <select
+                          {...form.register(`items.${index}.mealType`)}
+                          className="w-full border p-2 rounded text-sm"
+                        >
+                          {mealTypes.map((type) => (
+                            <option key={type.value} value={type.value}>
+                              {type.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Date
+                        </label>
+                        <input
+                          {...form.register(`items.${index}.scheduledFor`)}
+                          type="date"
+                          className="w-full border p-2 rounded text-sm"
+                        />
+                        {form.formState.errors.items?.[index]?.scheduledFor && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {
+                              form.formState.errors.items[index]?.scheduledFor
+                                ?.message
+                            }
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Servings
+                        </label>
+                        <input
+                          {...form.register(`items.${index}.servings`, {
+                            valueAsNumber: true,
+                          })}
+                          type="number"
+                          min="1"
+                          className="w-full border p-2 rounded text-sm"
+                        />
+                        {form.formState.errors.items?.[index]?.servings && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {
+                              form.formState.errors.items[index]?.servings
+                                ?.message
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col p-4 gap-2">
-              <label className="font-semibold">End Date</label>
-              <input
-                {...register("endDate")}
-                type="date"
-                className="border p-2 rounded"
-              />
-              {errors.endDate && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.endDate.message}
-                </p>
-              )}
-            </div>
+
             <button
               type="submit"
-              disabled={isSubmitting || loading}
-              className="w-full flex justify-center py-3 cursor-pointer px-4 border border-transparent bg-black rounded-lg shadow-sm text-sm font-medium text-white hover:bg-gray-800 focus:outline-none disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              disabled={loading || form.formState.isSubmitting}
+              className="w-full bg-black text-white py-3 cursor-pointer rounded font-medium hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isSubmitting || loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating...
-                </>
-              ) : (
-                "Create"
-              )}
+              {loading ? "Creating..." : "Create Meal Plan"}
             </button>
           </form>
         </SheetContent>
